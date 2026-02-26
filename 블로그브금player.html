@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>성대블로그 BGM</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+    background:#f3eaea;
+    font-family:'Nunito', 'Segoe UI', sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.player{
+    width:360px;
+    background:#f3eaea;
+    border-radius:30px;
+    padding:25px;
+    box-shadow:
+        10px 10px 25px #e1cfcf,
+        -10px -10px 25px #ffffff;
+}
+
+.title{
+    text-align:center;
+    font-size:20px;
+    font-weight:800;
+    color:#ff4d6d;
+    transition: all 0.4s ease;
+}
+
+.artist{
+    text-align:center;
+    font-size:13px;
+    color:#999;
+    margin-bottom:8px;
+}
+
+.album-container{
+    display:flex;
+    justify-content:center;
+    margin:16px 0;
+}
+
+.album{
+    width:160px;
+    height:160px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ff9aa2,#ffb7b2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:36px;
+    box-shadow:
+        8px 8px 20px #e1cfcf,
+        -8px -8px 20px #ffffff;
+    transition: transform 0.3s ease;
+    animation: none;
+}
+
+.album.spinning {
+    animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* 진행 바 */
+.progress-wrap{
+    margin: 10px 4px 2px;
+    cursor: pointer;
+    position: relative;
+    height: 6px;
+    background: #e8d8d8;
+    border-radius: 10px;
+    box-shadow: inset 2px 2px 5px #d4c0c0, inset -2px -2px 5px #fffafa;
+    overflow: hidden;
+}
+
+.progress-bar{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #ff9aa2, #ff4d6d);
+    border-radius: 10px;
+    transition: width 0.5s linear;
+    pointer-events: none;
+}
+
+.time-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:#999;
+    margin: 4px 4px 12px;
+}
+
+audio{ display:none; }
+
+.controls{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin:12px 0;
+}
+
+.btn{
+    background:#f3eaea;
+    border:none;
+    padding:12px 14px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:14px;
+    box-shadow:
+        6px 6px 12px #e1cfcf,
+        -6px -6px 12px #ffffff;
+    transition:0.2s;
+    color: #555;
+    line-height:1;
+}
+
+.btn:hover{ color:#ff4d6d; }
+
+.btn:active{
+    box-shadow: inset 4px 4px 8px #e1cfcf,
+                inset -4px -4px 8px #ffffff;
+}
+
+.btn.play-btn{
+    padding: 15px 17px;
+    font-size: 18px;
+}
+
+/* 볼륨 */
+.volume-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin: 4px 4px 12px;
+    font-size:13px;
+    color:#aaa;
+}
+
+.volume-row input[type=range]{
+    -webkit-appearance:none;
+    flex:1;
+    height:4px;
+    border-radius:10px;
+    background: linear-gradient(to right, #ff9aa2 var(--val,70%), #e8d8d8 var(--val,70%));
+    outline:none;
+    cursor:pointer;
+}
+
+.volume-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:14px; height:14px;
+    border-radius:50%;
+    background:#ff4d6d;
+    box-shadow: 2px 2px 5px #e1cfcf;
+    cursor:pointer;
+}
+
+.mode{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom: 10px;
+}
+
+.mode-btn{
+    background:#f3eaea;
+    border:none;
+    border-radius:20px;
+    padding:6px 14px;
+    font-size:12px;
+    font-family:'Nunito',sans-serif;
+    cursor:pointer;
+    color:#999;
+    box-shadow:
+        4px 4px 8px #e1cfcf,
+        -4px -4px 8px #ffffff;
+    transition:0.2s;
+    font-weight:600;
+}
+
+.mode-btn.active-mode{
+    color:#ff4d6d;
+    box-shadow: inset 3px 3px 6px #e1cfcf,
+                inset -3px -3px 6px #ffffff;
+}
+
+/* 플레이리스트 */
+.playlist{
+    margin-top:8px;
+    max-height:120px;
+    overflow-y:auto;
+    font-size:13px;
+    scrollbar-width:thin;
+    scrollbar-color:#f0d0d5 transparent;
+}
+
+.playlist::-webkit-scrollbar{ width:4px; }
+.playlist::-webkit-scrollbar-thumb{ background:#f0d0d5; border-radius:4px; }
+
+.song{
+    padding:7px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    color:#666;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:background 0.15s;
+    font-weight:600;
+}
+
+.song:hover{ background:#ffd6db; color:#ff4d6d; }
+
+.song.active{
+    color:#ff4d6d;
+    background:#ffeaed;
+}
+
+.song .song-num{
+    font-size:11px;
+    color:#ccc;
+    min-width:16px;
+    text-align:right;
+}
+
+.song.active .song-num{
+    content:'▶';
+    color:#ff9aa2;
+}
+
+.now-icon{
+    font-size:10px;
+    animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse{
+    from{ opacity:0.4; transform:scale(0.9); }
+    to{ opacity:1; transform:scale(1.1); }
+}
+</style>
+</head>
+<body>
+
+<div class="player">
+    <div class="title" id="titleDisp">Maple Home</div>
+    <div class="artist">Maple BGM Collection</div>
+
+    <div class="album-container">
+        <div class="album" id="album">🎵</div>
+    </div>
+
+    <!-- 진행 바 -->
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="time-row">
+        <span id="curTime">00:00</span>
+        <span id="durTime">00:00</span>
+    </div>
+
+    <audio id="audio"></audio>
+
+    <!-- 컨트롤 -->
+    <div class="controls">
+        <button class="btn" onclick="prevSong()" title="이전">⏮</button>
+        <button class="btn play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+        <button class="btn" onclick="nextSong()" title="다음">⏭</button>
+    </div>
+
+    <!-- 볼륨 -->
+    <div class="volume-row">
+        <span>🔈</span>
+        <input type="range" id="volSlider" min="0" max="100" value="70"
+            oninput="setVolume(this.value)">
+        <span>🔊</span>
+    </div>
+
+    <!-- 모드 -->
+    <div class="mode">
+        <button class="mode-btn active-mode" id="modeOrder" onclick="setMode('order')">순서</button>
+        <button class="mode-btn" id="modeShuffle" onclick="setMode('shuffle')">셔플</button>
+        <button class="mode-btn" id="modeRepeat" onclick="setMode('repeat')">반복</button>
+    </div>
+
+    <div class="playlist" id="playlist"></div>
+</div>
+
+<script>
+const songs = [
+    {
+        title: "Maple Home",
+        src: "https://s3.ap-northeast-1.amazonaws.com/maplestudio.app/sounds/mapleHome.img.mapleHome_BGM_Guitar.mp3"
+    },
+    {
+        title: "GuildCastle",
+        src: "https://hiy9.net/ms-ost/music/GuildCastle_Comfort.mp3"
+    },
+    {
+    title: "나린",
+    src: "https://hiy9.net/ms-ost/music/WonderfulMomentsInNarin.mp3"
+},
+{
+    title: "달보드레공방",
+    src: "https://hiy9.net/ms-ost/music/OnedayAtTheAtelier.mp3"
+},
+{
+    title: "블루밍포레스트",
+    src: "https://hiy9.net/ms-ost/music/18th_Event.mp3"
+},
+{
+    title: "이덴디스크",
+    src: "https://hiy9.net/ms-ost/music/Dancing_Sea_Otter.mp3"
+},
+    // 여기에 곡 추가하면 자동 반영
+];
+
+let currentIndex = 0;
+let mode = "order";
+let isPlaying = false;
+
+const audio = document.getElementById("audio");
+const playBtn = document.getElementById("playBtn");
+const progressBar = document.getElementById("progressBar");
+const progressWrap = document.getElementById("progressWrap");
+const curTimeEl = document.getElementById("curTime");
+const durTimeEl = document.getElementById("durTime");
+const albumEl = document.getElementById("album");
+const titleEl = document.getElementById("titleDisp");
+const volSlider = document.getElementById("volSlider");
+
+// 볼륨 초기화
+audio.volume = 0.7;
+updateVolSlider(70);
+
+function fmtTime(s){
+    if(isNaN(s)||s<0) s=0;
+    let m=Math.floor(s/60), sec=Math.floor(s%60);
+    return (m<10?"0":"")+m+":"+(sec<10?"0":"")+sec;
+}
+
+function loadPlaylist(){
+    const pd = document.getElementById("playlist");
+    pd.innerHTML = "";
+    songs.forEach((song, i) => {
+        const div = document.createElement("div");
+        div.className = "song" + (i === currentIndex ? " active" : "");
+        div.innerHTML = `<span class="song-num">${i===currentIndex?'<span class="now-icon">♪</span>': (i+1)}</span><span>${song.title}</span>`;
+        div.onclick = () => playSong(i);
+        pd.appendChild(div);
+    });
+    // 현재 곡으로 스크롤
+    const activeEl = pd.querySelector(".active");
+    if(activeEl) activeEl.scrollIntoView({block:"nearest", behavior:"smooth"});
+}
+
+function playSong(index){
+    currentIndex = index;
+    audio.src = songs[index].src;
+    titleEl.textContent = songs[index].title;
+    audio.play().then(()=>{
+        setPlayState(true);
+    }).catch(()=>{
+        setPlayState(false);
+    });
+    loadPlaylist();
+}
+
+function setPlayState(playing){
+    isPlaying = playing;
+    playBtn.textContent = playing ? "⏸" : "▶";
+    if(playing){
+        albumEl.classList.add("spinning");
+    } else {
+        albumEl.classList.remove("spinning");
+    }
+}
+
+function togglePlay(){
+    if(audio.src===""){
+        playSong(currentIndex);
+        return;
+    }
+    if(audio.paused){
+        audio.play().then(()=>setPlayState(true));
+    } else {
+        audio.pause();
+        setPlayState(false);
+    }
+}
+
+function nextSong(){
+    if(mode==="shuffle"){
+        let ni;
+        do { ni = Math.floor(Math.random()*songs.length); } while(songs.length>1 && ni===currentIndex);
+        currentIndex = ni;
+    } else {
+        currentIndex = (currentIndex+1) % songs.length;
+    }
+    playSong(currentIndex);
+}
+
+function prevSong(){
+    if(audio.currentTime > 3){
+        audio.currentTime = 0;
+        return;
+    }
+    currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+    playSong(currentIndex);
+}
+
+function setMode(m){
+    mode = m;
+    document.getElementById("modeOrder").classList.toggle("active-mode", m==="order");
+    document.getElementById("modeShuffle").classList.toggle("active-mode", m==="shuffle");
+    document.getElementById("modeRepeat").classList.toggle("active-mode", m==="repeat");
+}
+
+// 진행 바 클릭
+progressWrap.addEventListener("click", (e)=>{
+    if(!audio.duration) return;
+    const rect = progressWrap.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = ratio * audio.duration;
+});
+
+// 시간 업데이트
+audio.addEventListener("timeupdate", ()=>{
+    const cur = audio.currentTime;
+    const dur = audio.duration || 0;
+    curTimeEl.textContent = fmtTime(cur);
+    durTimeEl.textContent = fmtTime(dur);
+    const pct = dur ? (cur / dur * 100) : 0;
+    progressBar.style.width = pct + "%";
+});
+
+audio.addEventListener("loadedmetadata", ()=>{
+    durTimeEl.textContent = fmtTime(audio.duration);
+});
+
+audio.addEventListener("ended", ()=>{
+    if(mode==="repeat"){
+        audio.currentTime=0;
+        audio.play();
+    } else {
+        nextSong();
+    }
+});
+
+audio.addEventListener("pause", ()=>{ if(!audio.ended) setPlayState(false); });
+audio.addEventListener("play", ()=>setPlayState(true));
+
+// 볼륨
+function setVolume(val){
+    audio.volume = val/100;
+    updateVolSlider(val);
+}
+
+function updateVolSlider(val){
+    volSlider.style.setProperty('--val', val+'%');
+}
+
+volSlider.addEventListener("input", ()=> updateVolSlider(volSlider.value));
+
+// 초기 로드
+loadPlaylist();
+
+// 자동재생 시도 
+audio.src = songs[currentIndex].src;
+audio.volume = 0.7;
+const tryAutoplay = audio.play();
+if(tryAutoplay !== undefined){
+    tryAutoplay.then(()=>setPlayState(true)).catch(()=>{
+        // 자동재생 차단 시 클릭 유도
+        setPlayState(false);
+    });
+}
+</script>
+</body>
+</html>
